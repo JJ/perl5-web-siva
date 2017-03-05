@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use Carp;
 
-use version; our $VERSION = qv('0.0.3');
+use version; our $VERSION = qv('0.0.4');
 
 use Mojo::DOM;
 use LWP::Simple;
@@ -28,10 +28,11 @@ sub new {
 
 sub day {
   my $self = shift;
-  my ($dia, $mes, $year, $fecha) = @_;
+  my ($dia, $mes, $year ) = @_;
   my $year_digits = substr($year,2,2);
   my $provincia = $self->{'_province'};
   my $date =  sprintf("%02d%02d%02d",$year_digits,$mes,$dia);
+  my $fecha = sprintf("%04d-%02d-%02d", $year, $mes, $dia );
   
   my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.htm";
   

@@ -19,6 +19,11 @@ To install this module, run the following commands:
 	make test
 	make install
 
+If there are some dependencies missing,
+
+	cpanm --installdeps .
+	
+You should do it anyway, just in case. 
 
 ## DEPENDENCIES
 
