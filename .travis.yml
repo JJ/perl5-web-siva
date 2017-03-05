@@ -10,6 +10,6 @@ perl:
   - "5.16"
   - "5.14"
   - "5.12"
-script: prove -lv t/ xt/
+script: cpanm Test::Perl::Critic && prove -lv t/ xt/
 
   
