@@ -12,7 +12,7 @@ WriteMakefile(
         'Test::More' => 0,
 	    'version'    => 0,
 	    'Mojolicious' => 7.13,
-	    'LWP::Simple' => 0 }
+	    'LWP::Simple' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Web-SIVA-*' },
