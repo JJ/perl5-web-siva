@@ -90,7 +90,7 @@ Web::SIVA - Scrapes information from the Air Quality web in Andalucia, Spain htt
 
 =head1 VERSION
 
-This document describes Web::SIVA version 0.0.3
+This document describes Web::SIVA version 0.0.4
 
 
 =head1 SYNOPSIS
@@ -99,7 +99,6 @@ This document describes Web::SIVA version 0.0.3
 
     my $siva_provincia = new Web::SIVA "gr"; # two-letter acronym for provinces in Andalucia
     my $data_yesterday = $siva_provincia( 4, 3, 2017 ) # As in March 4th, 2017
-
       
   
 =head1 DESCRIPTION
@@ -110,7 +109,7 @@ Creates an object with metadata for a single province.
 
 =head2 day $day, $mont, $year
 
-Downloads information from a single day
+Downloads information for a single day from the web and returns it as a reference to array of hashes, with every element including information for a single measure. 
 
 =over
 
