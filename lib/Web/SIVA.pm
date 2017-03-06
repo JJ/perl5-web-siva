@@ -114,8 +114,6 @@ Creates an object with metadata for a single province.
 
 Downloads information for a single day from the web and returns it as a reference to array of hashes, with every element including information for a single measure. 
 
-=back
-
 =head2 DIAGNOSTICS
 
 =over
