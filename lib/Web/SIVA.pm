@@ -114,9 +114,11 @@ Creates an object with metadata for a single province.
 
 Downloads information for a single day from the web and returns it as a reference to array of hashes, with every element including information for a single measure. 
 
-=over
+=back
 
 =head2 DIAGNOSTICS
+
+=over
 
 =item C<< Problemas con formato >>
 
@@ -124,7 +126,7 @@ Format problems. Something is wrong with the file. It happens from time to time.
 
 =item C<< %s is not one of the 8 provinces >>
 
-You are trying to instantiate the object for a province that does not exist in Andalucía. Correct ones are C<al>, C<ma>, C<se>, C<ja>, C<gr>, C<hu>, C<co>, C<ca>. 
+You are trying to instantiate the object for a province that does not exist in Andalucia. Correct ones are C<al>, C<ma>, C<se>, C<ja>, C<gr>, C<hu>, C<co>, C<ca>. 
 
 =back
 
