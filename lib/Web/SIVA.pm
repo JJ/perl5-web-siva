@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use Carp;
 
-use version; our $VERSION = qv('0.0.4');
+use version; our $VERSION = qv('0.0.5');
 
 use Mojo::DOM;
 use LWP::Simple;
@@ -31,6 +31,9 @@ sub day {
   my ($dia, $mes, $year ) = @_;
   my $year_digits = substr($year,2,2);
   my $provincia = $self->{'_province'};
+  if ( ! $provincias{$provincia} ) {
+    croak "$provincia is not one of the 8 provinces";
+  }
   my $date =  sprintf("%02d%02d%02d",$year_digits,$mes,$dia);
   my $fecha = sprintf("%04d-%02d-%02d", $year, $mes, $dia );
   
@@ -113,9 +116,15 @@ Downloads information for a single day from the web and returns it as a referenc
 
 =over
 
+=head2 DIAGNOSTICS
+
 =item C<< Problemas con formato >>
 
-Format problems. Something is wrong with the file
+Format problems. Something is wrong with the file. It happens from time to time.
+
+=item C<< %s is not one of the 8 provinces >>
+
+You are trying to instantiate the object for a province that does not exist in Andalucía. Correct ones are C<al>, C<ma>, C<se>, C<ja>, C<gr>, C<hu>, C<co>, C<ca>. 
 
 =back
 
