@@ -1,4 +1,4 @@
-use Test::More tests => 4;  # -*- mode: cperl -*-
+use Test::More tests => 6;  # -*- mode: cperl -*-
 
 use lib qw(../lib lib ); # Test in-place
 
@@ -10,6 +10,10 @@ my $siva_provincia = new Web::SIVA "gr"; # two-letter acronym for provinces in A
 is( ref $siva_provincia, "Web::SIVA", "Object OK" );
 my $data_2003 = $siva_provincia->day( 3, 3, 2003 ); # Previous to 11-Jan-2004
 is ( $data_2003->[572]{'CO'}, 1323, "Text data OK");
+$data_2003 = $siva_provincia->day( 10, 1, 2004 ); # Previous to 11-Jan-2004
+is ( $data_2003->[100]{'PART'}, 57, "HTML data OK");
+$data_2003 = $siva_provincia->day( 11, 1, 2004 ); # After 11-Jan-2004
+is ( $data_2003->[0]{'SO2'}, 13, "HTML data OK");
 my $data_yesterday = $siva_provincia->day( 4, 3, 2017 ); # As in March 4th, 2017
 is ( $data_yesterday->[574]{'CO'}, 146, "HTML data OK");
 
