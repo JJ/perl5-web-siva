@@ -36,47 +36,82 @@ sub day {
   }
   my $date =  sprintf("%02d%02d%02d",$year_digits,$mes,$dia);
   my $fecha = sprintf("%04d-%02d-%02d", $year, $mes, $dia );
-  
-  my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.htm";
-  
-  my $content = get( $url );
   my @datos;
   
-  if  ( $content and $content =~ m{$year</title} )  {
-    my $dom = Mojo::DOM->new( $content );
-
-    my @tables = $dom->find('table')->each;
-    
-    shift @tables; #Primera tabla con leyenda
-    
-    while ( @tables ) {
-      my $metadatos = shift @tables;
-      next if !@tables;
-      my $medidas = shift @tables;
-      
-      my @metadatos = ( $metadatos =~ /<b>.([A-Z][^<]+)/g);
-      my $this_metadata = { date => $fecha };
-      for my $k (qw(provincia municipio estacion direccion)) {
-	$this_metadata->{$k} = shift @metadatos;
+  if ( ($year < 2004) || ( $year == 2004 && $mes == 1 && $dia < 11 ) ) {
+    my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.txt";
+    my $content = get( $url );
+    if ( $content ) {
+      my @tables = split(/\s+\n\s+\n\s+\n/, $content);
+      shift @tables; # unneeded first row
+      for my $t (@tables) {
+	my @lines = split("\n", $t );
+	my $this_metadata = { date => $fecha."T00:00" };
+	my @metadatos;
+	push @metadatos, ( $lines[0] =~ /Provincia:\s+(\w+)\s+Estacion:\s+(.+)/ );
+	push @metadatos, ( $lines[1] =~ /Municipio:\s+(\w+)\s+Direccion:\s+(.+)/ );
+	for my $k (qw(provincia estacion municipio direccion)) {
+	  $this_metadata->{$k} = shift @metadatos;
+	}
+	for (my $l =  5; $l <= $#lines-4; $l++ ) {
+	  my %these_medidas = %{$this_metadata};
+	  my @columnas = split(/\s+/, $lines[$l]);
+	  my $fecha_hora = shift @columnas;
+	  my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
+	  if ( !$hora ) {
+	    carp "Problemas con el formato en $l $lines[$l] $fecha";
+	    next;
+	  }
+	  $these_medidas{'date'} =~ s/00:00/$hora/;
+	  for my $c (qw(SO2 PART NO2 CO)) {
+	    $these_medidas{$c} = shift @columnas;
+	  }
+	  push @datos, \%these_medidas;
+	}
       }
-
-      my @filas = $medidas->find('tr')->each;
+    }
+  } else {
+    my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.htm";
+  
+    my $content = get( $url );
+   
+    
+    if  ( $content and $content =~ m{$year</title} )  {
+      my $dom = Mojo::DOM->new( $content );
       
-      shift @filas; #Cabecera
-      pop @filas;
-      for my $f (@filas) {
-	my @columnas = $f->find('td')->map('text')->each;
-	my %these_medidas = %{$this_metadata};
-	my $fecha_hora = shift @columnas;
-	my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
-	if ( !$hora ) {
+      my @tables = $dom->find('table')->each;
+      
+      shift @tables; #Primera tabla con leyenda
+      
+      while ( @tables ) {
+	my $metadatos = shift @tables;
+	next if !@tables;
+	my $medidas = shift @tables;
+	
+	my @metadatos = ( $metadatos =~ /<b>.([A-Z][^<]+)/g);
+	my $this_metadata = { date => $fecha };
+	for my $k (qw(provincia municipio estacion direccion)) {
+	  $this_metadata->{$k} = shift @metadatos;
+	}
+	
+	my @filas = $medidas->find('tr')->each;
+	
+	shift @filas; #Cabecera
+	pop @filas;
+	for my $f (@filas) {
+	  my @columnas = $f->find('td')->map('text')->each;
+	  my %these_medidas = %{$this_metadata};
+	  my $fecha_hora = shift @columnas;
+	  my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
+	  if ( !$hora ) {
 	    carp "Problemas con el formato en $f $fecha";
+	  }
+	  $these_medidas{'date'} =~ s/00:00/$hora/;
+	  for my $c (qw(SO2 PART NO2 CO O3)) {
+	    $these_medidas{$c} = shift @columnas;
+	  }
+	  push @datos, \%these_medidas;
 	}
-	$these_medidas{'date'} =~ s/00:00/$hora/;
-	for my $c (qw(SO2 PART NO2 CO O3)) {
-	  $these_medidas{$c} = shift @columnas;
-	}
-	push @datos, \%these_medidas;
       }
     }
   }
