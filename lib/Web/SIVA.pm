@@ -45,7 +45,7 @@ sub day {
       my @tables = ($content =~ /Ambiental\s+(.+?)\s+Nota/gs);
       shift @tables; # unneeded first row
       for my $t (@tables) {
-	my @lines = split("\n", $t );
+	my @lines = grep( $_, split("\n", $t ) ); # Only non-empty
 	next if $lines[$#lines] =~ /Fecha/; # No data
 	my $this_metadata = { date => $fecha."T00:00" };
 	my @metadatos;
@@ -56,16 +56,22 @@ sub day {
 	}
 	my (@cabeceras) = split( /\s+/, $lines[2]);
 	shift @cabeceras; #Date goes first
-	for (my $l =  5; $l <= $#lines-4; $l++ ) {
+	for (my $l =  3; $l <= $#lines; $l++ ) {
 	  my %these_medidas = %{$this_metadata};
-	  my @columnas = split(/\s+/, $lines[$l]);
+	  my @columnas = split(/\s{4,}/, $lines[$l]);
 	  my $fecha_hora = shift @columnas;
-	  my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
-	  if ( !$hora ) {
-	    carp "Problemas con el formato en $l $lines[$l] $fecha";
-	    next;
+	  if ( $fecha_hora =~ /:/ ) {
+	    my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
+	    if ( !$hora ) {
+	      carp "Problemas con el formato en $l $lines[$l] $fecha";
+	      next;
+	    }
+	    $these_medidas{'date'} =~ s/00:00/$hora/;
+	  } else { #Different format
+	    my ($this_date, $hour) = split(/\s+/, $fecha_hora);
+	    my ($this_day,$mon,$year) = split("/", $this_date);
+	    $these_medidas{'date'} = sprintf("%04d-%02d-%02dT%02d:00", $year+1900,$mon,$this_day,$hour);
 	  }
-	  $these_medidas{'date'} =~ s/00:00/$hora/;
 	  for my $c ( @cabeceras ) {
 	    $these_medidas{$c} = shift @columnas;
 	  }
