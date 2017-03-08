@@ -1,4 +1,4 @@
-use Test::More tests => 6;  # -*- mode: cperl -*-
+use Test::More tests => 7;  # -*- mode: cperl -*-
 
 use lib qw(../lib lib ); # Test in-place
 
@@ -8,6 +8,11 @@ use_ok( 'Web::SIVA' );
 
 my $siva_provincia = new Web::SIVA "gr"; # two-letter acronym for provinces in Andalucía
 is( ref $siva_provincia, "Web::SIVA", "Object OK" );
+
+
+#Checks different formats
+my $data_day = $siva_provincia->day( 1, 1, 1998 ); # Corner case
+is (@$data_day, 0, "No data");
 my $data_2003 = $siva_provincia->day( 3, 3, 2003 ); # Previous to 11-Jan-2004
 is ( $data_2003->[572]{'CO'}, 1323, "Text data OK");
 $data_2003 = $siva_provincia->day( 10, 1, 2004 ); # Previous to 11-Jan-2004

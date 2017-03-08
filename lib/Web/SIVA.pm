@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use Carp;
 
-use version; our $VERSION = qv('0.0.5');
+use version; our $VERSION = qv('0.0.6');
 
 use Mojo::DOM;
 use LWP::Simple;
@@ -42,17 +42,20 @@ sub day {
     my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.txt";
     my $content = get( $url );
     if ( $content ) {
-      my @tables = split(/\s+\n\s+\n\s+\n/, $content);
+      my @tables = ($content =~ /Ambiental\s+(.+?)\s+Nota/gs);
       shift @tables; # unneeded first row
       for my $t (@tables) {
 	my @lines = split("\n", $t );
+	next if $lines[$#lines] =~ /Fecha/; # No data
 	my $this_metadata = { date => $fecha."T00:00" };
 	my @metadatos;
-	push @metadatos, ( $lines[0] =~ /Provincia:\s+(\w+)\s+Estacion:\s+(.+)/ );
-	push @metadatos, ( $lines[1] =~ /Municipio:\s+(\w+)\s+Direccion:\s+(.+)/ );
+	push @metadatos, ( $lines[0] =~ /Provincia\s*:\s+(\w+)\s+Estacion\s*:\s+(.+)/ );
+	push @metadatos, ( $lines[1] =~ /Municipio\s*:\s+(\w+)\s+Direccion\s*:\s+(.+)/ );
 	for my $k (qw(provincia estacion municipio direccion)) {
 	  $this_metadata->{$k} = shift @metadatos;
 	}
+	my (@cabeceras) = split( /\s+/, $lines[2]);
+	shift @cabeceras; #Date goes first
 	for (my $l =  5; $l <= $#lines-4; $l++ ) {
 	  my %these_medidas = %{$this_metadata};
 	  my @columnas = split(/\s+/, $lines[$l]);
@@ -63,7 +66,7 @@ sub day {
 	    next;
 	  }
 	  $these_medidas{'date'} =~ s/00:00/$hora/;
-	  for my $c (qw(SO2 PART NO2 CO)) {
+	  for my $c ( @cabeceras ) {
 	    $these_medidas{$c} = shift @columnas;
 	  }
 	  push @datos, \%these_medidas;
