@@ -29,7 +29,9 @@ You should do it anyway, just in case.
 
 `Mojo::DOM` for scraping, `LWP::Simple` for downloading 
 
+## TODO
 
+More extensive testing of all formats and all provincies. For now, Granada is the only one tested, all three formats which were introduced at different dates. 
 
 ## COPYRIGHT AND LICENCE
 

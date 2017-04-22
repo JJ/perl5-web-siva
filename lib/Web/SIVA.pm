@@ -150,12 +150,12 @@ __END__
 
 =head1 NAME
 
-Web::SIVA - Scrapes information from the Air Quality web in Andalucia, Spain http://www.juntadeandalucia.es/medioambiente/site/portalweb/menuitem.7e1cf46ddf59bb227a9ebe205510e1ca/?vgnextoid=7e612e07c3dc4010VgnVCM1000000624e50aRCRD&vgnextchannel=3b43de552afae310VgnVCM2000000624e50aRCRD
+Web::SIVA - Scrapes information from the L<Air Quality web in Andalucia, Spain|http://www.juntadeandalucia.es/medioambiente/site/portalweb/menuitem.7e1cf46ddf59bb227a9ebe205510e1ca/?vgnextoid=7e612e07c3dc4010VgnVCM1000000624e50aRCRD&vgnextchannel=3b43de552afae310VgnVCM2000000624e50aRCRD>
 
 
 =head1 VERSION
 
-This document describes Web::SIVA version 0.0.4
+This document describes Web::SIVA version 0.0.6
 
 
 =head1 SYNOPSIS
@@ -163,18 +163,23 @@ This document describes Web::SIVA version 0.0.4
     use Web::SIVA;
 
     my $siva_provincia = new Web::SIVA "gr"; # two-letter acronym for provinces in Andalucia
-    my $data_yesterday = $siva_provincia( 4, 3, 2017 ) # As in March 4th, 2017
+    my $data_yesterday = $siva_provincia->day( 4, 3, 2017 ) # As in March 4th, 2017
       
   
 =head1 DESCRIPTION
 
 =head2 new $province
 
-Creates an object with metadata for a single province.
+Creates an object with metadata for a single province. Use C<al>,
+C<ma>, C<se>, C<ja>, C<gr>, C<hu>, C<co>, C<ca> as acronym for the
+province. 
 
 =head2 day $day, $mont, $year
 
-Downloads information for a single day from the web and returns it as a reference to array of hashes, with every element including information for a single measure. 
+Downloads information for a single day from the web and returns it as
+a reference to array of hashes, with every element including
+information for a single measure. It relies on date information to
+decide which format to use. 
 
 =head2 DIAGNOSTICS
 
@@ -182,7 +187,9 @@ Downloads information for a single day from the web and returns it as a referenc
 
 =item C<< Problemas con formato >>
 
-Format problems. Something is wrong with the file. It happens from time to time.
+Format problems. Something is wrong with the file. It happens from
+time to time. If it does, please report it using CPAN RT or GitHub
+issues (see below).
 
 =item C<< %s is not one of the 8 provinces >>
 
