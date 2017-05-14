@@ -170,7 +170,7 @@ This document describes Web::SIVA version 0.0.6
 
 Creates an object with metadata for a single province. Use C<al>,
 C<ma>, C<se>, C<ja>, C<gr>, C<hu>, C<co>, C<ca> as acronym for the
-L<provinces in Andalucía|https://en.wikipedia.org/wiki/Andalusia>.
+L<provinces in Andalucia|https://en.wikipedia.org/wiki/Andalusia>.
 
 =head2 day $day, $mont, $year
 
