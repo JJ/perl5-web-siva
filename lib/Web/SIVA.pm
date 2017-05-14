@@ -21,7 +21,9 @@ our $base_url = "http://www.juntadeandalucia.es/medioambiente/atmosfera/informes
 sub new {
   my $class = shift;
   my $province = shift || croak "Necesito una provincia";
-  
+  if ( ! $provincias{$province} ) {
+    croak "$province is not one of the 8 provinces";
+  }
   return bless { _province => $province}, $class;
 
 }
@@ -31,9 +33,6 @@ sub day {
   my ($dia, $mes, $year ) = @_;
   my $year_digits = substr($year,2,2);
   my $provincia = $self->{'_province'};
-  if ( ! $provincias{$provincia} ) {
-    croak "$provincia is not one of the 8 provinces";
-  }
   my $date =  sprintf("%02d%02d%02d",$year_digits,$mes,$dia);
   my $fecha = sprintf("%04d-%02d-%02d", $year, $mes, $dia );
   my @datos;
@@ -157,7 +156,6 @@ Web::SIVA - Scrapes information from the L<Air Quality web in Andalucia, Spain|h
 
 This document describes Web::SIVA version 0.0.6
 
-
 =head1 SYNOPSIS
 
     use Web::SIVA;
@@ -172,7 +170,7 @@ This document describes Web::SIVA version 0.0.6
 
 Creates an object with metadata for a single province. Use C<al>,
 C<ma>, C<se>, C<ja>, C<gr>, C<hu>, C<co>, C<ca> as acronym for the
-province. 
+L<provinces in Andalucía|https://en.wikipedia.org/wiki/Andalusia>.
 
 =head2 day $day, $mont, $year
 
@@ -191,6 +189,10 @@ Format problems. Something is wrong with the file. It happens from
 time to time. If it does, please report it using CPAN RT or GitHub
 issues (see below).
 
+=item C<< Necesito una provincia >>
+
+"I neec a province". You have to instantiate the class with one of the province acronyms listed below.
+
 =item C<< %s is not one of the 8 provinces >>
 
 You are trying to instantiate the object for a province that does not exist in Andalucia. Correct ones are C<al>, C<ma>, C<se>, C<ja>, C<gr>, C<hu>, C<co>, C<ca>. 
@@ -205,11 +207,13 @@ Depends on C<Mojo::DOM> for scraping and C<LWP::Simple> for downloading.
 
 =head1 BUGS AND LIMITATIONS
 
+Error messages are in Spanish. It is a Spanish web, so I thought what the heck.
+
 No bugs have been reported.
 
 Please report any bugs or feature requests to
 C<bug-web-siva@rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org> or in Github at L<http://github.com/JJ/perl5-web-siva>
+L<http://rt.cpan.org> or in Github at L<http://github.com/JJ/perl5-web-siva/issues>
 
 
 =head1 AUTHOR
