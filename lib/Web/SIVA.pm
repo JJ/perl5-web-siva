@@ -28,16 +28,14 @@ sub new {
 
 }
 
-sub day {
+# Prior to January 11, 2014
+sub _fetch_old_style {
   my $self = shift;
-  my ($dia, $mes, $year ) = @_;
-  my $year_digits = substr($year,2,2);
-  my $provincia = $self->{'_province'};
-  my $date =  sprintf("%02d%02d%02d",$year_digits,$mes,$dia);
-  my $fecha = sprintf("%04d-%02d-%02d", $year, $mes, $dia );
+  my ( $dia, $mes, $year ) = @_;
   my @datos;
+  my $provincia = $self->{'_province'};
+  my ( $year_digits, $date, $fecha ) = $self->_fixup_dates( $dia, $mes, $year );
 
-  if ( ($year < 2004) || ( $year == 2004 && $mes == 1 && $dia < 11 ) ) {
     my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.txt";
     my $content = get( $url );
     if ( $content ) {
@@ -97,7 +95,18 @@ sub day {
   }
       }
     }
-  } else {
+
+    return \@datos;
+}
+
+# January 11, 2014 and above
+sub _fetch_new_style {
+  my $self = shift;
+  my ( $dia, $mes, $year ) = @_;
+  my @datos;
+  my $provincia = $self->{'_province'};
+  my ( $year_digits, $date, $fecha ) = $self->_fixup_dates( $dia, $mes, $year );
+
     my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.htm";
 
     my $content = get( $url );
@@ -140,8 +149,31 @@ sub day {
   }
       }
     }
+
+    return \@datos;
+}
+
+sub _fixup_dates {
+  my $self = shift;
+  my ( $dia, $mes, $year ) = @_;
+  my $year_digits = substr($year,2,2);
+  my $date =  sprintf("%02d%02d%02d",$year_digits,$mes,$dia);
+  my $fecha = sprintf("%04d-%02d-%02d", $year, $mes, $dia );
+
+  return ($year_digits, $date, $fecha);
+}
+
+sub day {
+  my $self = shift;
+  my ($dia, $mes, $year ) = @_;
+  my $datos;
+
+  if ( ($year < 2004) || ( $year == 2004 && $mes == 1 && $dia < 11 ) ) {
+    $datos = $self->_fetch_old_style( $dia, $mes, $year );
+  } else {
+    $datos = $self->_fetch_new_style( $dia, $mes, $year );
   }
-  return \@datos;
+  return $datos;
 }
 
 "We want air"; # Magic true value required at end of module
