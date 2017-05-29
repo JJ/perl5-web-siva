@@ -36,15 +36,15 @@ sub _fetch_old_style {
   my $provincia = $self->{'_province'};
   my ( $year_digits, $date, $fecha ) = $self->_fixup_dates( $dia, $mes, $year );
 
-  my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.txt";
-  my $content = get( $url );
+  my $url     = $base_url . "$meses[$mes-1]$year_digits/n$provincia$date.txt";
+  my $content = get($url);
 
   if ( $content ) {
     my @tables;
     if ( $content =~ /Ambiental/ ) {
-      @tables = ($content =~ /Ambiental\s+(.+?)\s+Nota/gs);
+        @tables = ( $content =~ /Ambiental\s+(.+?)\s+Nota/gs );
     } else {
-      @tables = split(/\s+\n\s+\n\s+\n/, $content);
+        @tables = split( /\s+\n\s+\n\s+\n/, $content );
     }
 
     shift @tables; # unneeded first row
@@ -66,14 +66,14 @@ sub _fetch_old_style {
       push @metadatos, ( $lines[1] =~ /Municipio\s*:\s+(\w+)\s+Direccion\s*:\s+(.+)/ );
 
       for my $k (qw(provincia estacion municipio direccion)) {
-        $this_metadata->{$k} = shift @metadatos;
+          $this_metadata->{$k} = shift @metadatos;
       }
 
-      my (@cabeceras) = split( /\s+/, $lines[2]);
+      my (@cabeceras) = split( /\s+/, $lines[2] );
 
       shift @cabeceras; #Date goes first
 
-      for (my $l =  3; $l <= $#lines; $l++ ) {
+      for ( my $l = 3; $l <= $#lines; $l++ ) {
         my %these_medidas = %{$this_metadata};
         my @columnas;
 
@@ -98,8 +98,8 @@ sub _fetch_old_style {
 
           @columnas= split(/\s{7}/, $resto);
 
-          my ($this_date, $hour) = split(/\s+/, $fecha_hora);
-          my ($this_day,$mon,$year) = split("/", $this_date);
+          my ( $this_date, $hour )      = split( /\s+/, $fecha_hora );
+          my ( $this_day, $mon, $year ) = split( "/", $this_date );
 
           $these_medidas{'date'} = sprintf("%04d-%02d-%02dT%02d:00", $year+1900,$mon,$this_day,$hour);
         }
@@ -136,8 +136,7 @@ sub _fetch_new_style {
   my $content = get( $url );
 
   if  ( $content and $content =~ m{$year</title} )  {
-    my $dom = Mojo::DOM->new( $content );
-
+    my $dom    = Mojo::DOM->new( $content );
     my @tables = $dom->find('table')->each;
 
     shift @tables; #Primera tabla con leyenda
@@ -147,9 +146,8 @@ sub _fetch_new_style {
 
       next if !@tables;
 
-      my $medidas = shift @tables;
-
-      my @metadatos = ( $metadatos =~ /<b>.([A-Z][^<]+)/g);
+      my $medidas       = shift @tables;
+      my @metadatos     = ( $metadatos =~ /<b>.([A-Z][^<]+)/g);
       my $this_metadata = { date => $fecha };
 
       for my $k (qw(provincia municipio estacion direccion)) {
@@ -162,10 +160,10 @@ sub _fetch_new_style {
       pop @filas;
 
       for my $f (@filas) {
-        my @columnas = $f->find('td')->map('text')->each;
+        my @columnas      = $f->find('td')->map('text')->each;
         my %these_medidas = %{$this_metadata};
-        my $fecha_hora = shift @columnas;
-        my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
+        my $fecha_hora    = shift @columnas;
+        my ($hora)        = ( $fecha_hora =~ /(\d+:\d+)/ );
 
         if ( !$hora ) {
           carp "Problemas con el formato en $f $fecha";
