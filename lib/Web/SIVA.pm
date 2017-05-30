@@ -36,67 +36,91 @@ sub _fetch_old_style {
   my $provincia = $self->{'_province'};
   my ( $year_digits, $date, $fecha ) = $self->_fixup_dates( $dia, $mes, $year );
 
-    my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.txt";
-    my $content = get( $url );
-    if ( $content ) {
-      my @tables;
-      if ( $content =~ /Ambiental/ ) {
-  @tables = ($content =~ /Ambiental\s+(.+?)\s+Nota/gs);
-      } else {
-  @tables = split(/\s+\n\s+\n\s+\n/, $content);
-      }
-      shift @tables; # unneeded first row
-      for my $t (@tables) {
-  my @lines = grep( /\S+/, split("\n", $t ) ); # Only non-empty
-  next if $lines[$#lines] =~ /Fecha/; # No data
-  if ( $lines[$#lines] =~ /unidades/ ) {
-    pop @lines;
-    pop @lines;
-  }
-  my $this_metadata = { date => $fecha."T00:00" };
-  my @metadatos;
-  push @metadatos, ( $lines[0] =~ /Provincia\s*:\s+(\w+)\s+Estacion\s*:\s+(.+)/ );
-  push @metadatos, ( $lines[1] =~ /Municipio\s*:\s+(\w+)\s+Direccion\s*:\s+(.+)/ );
-  for my $k (qw(provincia estacion municipio direccion)) {
-    $this_metadata->{$k} = shift @metadatos;
-  }
-  my (@cabeceras) = split( /\s+/, $lines[2]);
-  shift @cabeceras; #Date goes first
-  for (my $l =  3; $l <= $#lines; $l++ ) {
-    my %these_medidas = %{$this_metadata};
-    my @columnas;
-    if ( $lines[$l] =~ /:/ ) {
-      @columnas = split( /\t/, $lines[$l]);
-      my $fecha_hora = shift @columnas;
-      my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
-      if ( !$hora ) {
-        carp "Problemas con el formato en $l $lines[$l] $fecha";
-        next;
-      }
-      $these_medidas{'date'} =~ s/00:00/$hora/;
-    } else { #Different format
-      my ($fecha_hora, $resto) = ($lines[$l] =~ /(\S+  \d+)\s{3}(.+)/);
-      if ( !$resto ) {
-        carp "Problemas con formato en $l => $lines[$l]";
-      }
-      @columnas= split(/\s{7}/, $resto);
-      my ($this_date, $hour) = split(/\s+/, $fecha_hora);
-      my ($this_day,$mon,$year) = split("/", $this_date);
-      $these_medidas{'date'} = sprintf("%04d-%02d-%02dT%02d:00", $year+1900,$mon,$this_day,$hour);
-    }
-    for my $c ( @cabeceras ) {
-      $these_medidas{$c} = shift @columnas;
-      next if !$these_medidas{$c};
-      $these_medidas{$c} =~ s/\.//;
-      $these_medidas{$c} =~ s/,/./;
-      $these_medidas{$c} = 0 + $these_medidas{$c};
-    }
-    push @datos, \%these_medidas;
-  }
-      }
+  my $url     = $base_url . "$meses[$mes-1]$year_digits/n$provincia$date.txt";
+  my $content = get($url);
+
+  if ( $content ) {
+    my @tables;
+    if ( $content =~ /Ambiental/ ) {
+        @tables = ( $content =~ /Ambiental\s+(.+?)\s+Nota/gs );
+    } else {
+        @tables = split( /\s+\n\s+\n\s+\n/, $content );
     }
 
-    return \@datos;
+    shift @tables; # unneeded first row
+
+    for my $t (@tables) {
+      my @lines = grep( /\S+/, split("\n", $t ) ); # Only non-empty
+
+      next if $lines[$#lines] =~ /Fecha/; # No data
+
+      if ( $lines[$#lines] =~ /unidades/ ) {
+        pop @lines;
+        pop @lines;
+      }
+
+      my $this_metadata = { date => $fecha."T00:00" };
+      my @metadatos;
+
+      push @metadatos, ( $lines[0] =~ /Provincia\s*:\s+(\w+)\s+Estacion\s*:\s+(.+)/ );
+      push @metadatos, ( $lines[1] =~ /Municipio\s*:\s+(\w+)\s+Direccion\s*:\s+(.+)/ );
+
+      for my $k (qw(provincia estacion municipio direccion)) {
+          $this_metadata->{$k} = shift @metadatos;
+      }
+
+      my (@cabeceras) = split( /\s+/, $lines[2] );
+
+      shift @cabeceras; #Date goes first
+
+      for ( my $l = 3; $l <= $#lines; $l++ ) {
+        my %these_medidas = %{$this_metadata};
+        my @columnas;
+
+        if ( $lines[$l] =~ /:/ ) {
+          @columnas = split( /\t/, $lines[$l]);
+
+          my $fecha_hora = shift @columnas;
+          my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
+
+          if ( !$hora ) {
+            carp "Problemas con el formato en $l $lines[$l] $fecha";
+            next;
+          }
+
+          $these_medidas{'date'} =~ s/00:00/$hora/;
+        } else { #Different format
+          my ($fecha_hora, $resto) = ($lines[$l] =~ /(\S+  \d+)\s{3}(.+)/);
+
+          if ( !$resto ) {
+            carp "Problemas con formato en $l => $lines[$l]";
+          }
+
+          @columnas= split(/\s{7}/, $resto);
+
+          my ( $this_date, $hour )      = split( /\s+/, $fecha_hora );
+          my ( $this_day, $mon, $year ) = split( "/", $this_date );
+
+          $these_medidas{'date'} = sprintf("%04d-%02d-%02dT%02d:00", $year+1900,$mon,$this_day,$hour);
+        }
+
+        for my $c ( @cabeceras ) {
+
+          $these_medidas{$c} = shift @columnas;
+
+          next if !$these_medidas{$c};
+
+          $these_medidas{$c} =~ s/\.//;
+          $these_medidas{$c} =~ s/,/./;
+          $these_medidas{$c} = 0 + $these_medidas{$c};
+        }
+
+        push @datos, \%these_medidas;
+      }
+    }
+  }
+
+  return \@datos;
 }
 
 # January 11, 2014 and above
@@ -107,50 +131,56 @@ sub _fetch_new_style {
   my $provincia = $self->{'_province'};
   my ( $year_digits, $date, $fecha ) = $self->_fixup_dates( $dia, $mes, $year );
 
-    my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.htm";
+  my $url = $base_url."$meses[$mes-1]$year_digits/n$provincia$date.htm";
 
-    my $content = get( $url );
+  my $content = get( $url );
 
-    if  ( $content and $content =~ m{$year</title} )  {
-      my $dom = Mojo::DOM->new( $content );
+  if  ( $content and $content =~ m{$year</title} )  {
+    my $dom    = Mojo::DOM->new( $content );
+    my @tables = $dom->find('table')->each;
 
-      my @tables = $dom->find('table')->each;
+    shift @tables; #Primera tabla con leyenda
 
-      shift @tables; #Primera tabla con leyenda
+    while ( @tables ) {
+      my $metadatos = shift @tables;
 
-      while ( @tables ) {
-  my $metadatos = shift @tables;
-  next if !@tables;
-  my $medidas = shift @tables;
+      next if !@tables;
 
-  my @metadatos = ( $metadatos =~ /<b>.([A-Z][^<]+)/g);
-  my $this_metadata = { date => $fecha };
-  for my $k (qw(provincia municipio estacion direccion)) {
-    $this_metadata->{$k} = shift @metadatos;
-  }
+      my $medidas       = shift @tables;
+      my @metadatos     = ( $metadatos =~ /<b>.([A-Z][^<]+)/g);
+      my $this_metadata = { date => $fecha };
 
-  my @filas = $medidas->find('tr')->each;
+      for my $k (qw(provincia municipio estacion direccion)) {
+        $this_metadata->{$k} = shift @metadatos;
+      }
 
-  shift @filas; #Cabecera
-  pop @filas;
-  for my $f (@filas) {
-    my @columnas = $f->find('td')->map('text')->each;
-    my %these_medidas = %{$this_metadata};
-    my $fecha_hora = shift @columnas;
-    my ($hora) = ($fecha_hora =~ /(\d+:\d+)/);
-    if ( !$hora ) {
-      carp "Problemas con el formato en $f $fecha";
-    }
-    $these_medidas{'date'} =~ s/00:00/$hora/;
-    for my $c (qw(SO2 PART NO2 CO O3)) {
-      $these_medidas{$c} = shift @columnas;
-    }
-    push @datos, \%these_medidas;
-  }
+      my @filas = $medidas->find('tr')->each;
+
+      shift @filas; #Cabecera
+      pop @filas;
+
+      for my $f (@filas) {
+        my @columnas      = $f->find('td')->map('text')->each;
+        my %these_medidas = %{$this_metadata};
+        my $fecha_hora    = shift @columnas;
+        my ($hora)        = ( $fecha_hora =~ /(\d+:\d+)/ );
+
+        if ( !$hora ) {
+          carp "Problemas con el formato en $f $fecha";
+        }
+
+        $these_medidas{'date'} =~ s/00:00/$hora/;
+
+        for my $c (qw(SO2 PART NO2 CO O3)) {
+          $these_medidas{$c} = shift @columnas;
+        }
+
+        push @datos, \%these_medidas;
       }
     }
+  }
 
-    return \@datos;
+  return \@datos;
 }
 
 sub _fixup_dates {
