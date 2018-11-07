@@ -21,6 +21,7 @@ WriteMakefile(
     AUTHOR              => 'JJ <JMERELO@cpan.org>',
     VERSION_FROM        => 'lib/Web/SIVA.pm',
     ABSTRACT_FROM       => 'lib/Web/SIVA.pm',
+    LICENSE             => 'perl_5',
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
